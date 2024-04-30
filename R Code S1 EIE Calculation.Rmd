@@ -1,0 +1,485 @@
+---
+title: "Nitrogenase"
+editor_options:
+  chunk_output_type: console
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    df_print: paged
+    number_sections: no
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r install, echo=FALSE, eval=FALSE}
+# only need to run this once
+install.packages("tidyverse")
+install.packages("latex2exp")
+```
+
+```{r setup, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(latex2exp)
+source("20191030_eunahs_system_functions.R")
+knitr::opts_chunk$set(
+  dev=c("png", "pdf"), dev.args=list(pdf = list(encoding="WinAnsi", useDingbats=FALSE)),
+  fig.keep="all", fig.path="20191030_eunahs_system_")
+```
+
+# Variables
+
+- $X_{x}$ : concentration of major isotope in reservoir x
+
+- $X_{x}^{*}=R_{x}\cdot X_{x}$ : concentration of minor isotope in reservoir x
+
+- $\phi_{x\rightarrow y}$ : flux of major isotope from reservoir x to y
+
+- $\phi_{x\rightarrow y}^{*}=R_{x\rightarrow y}\cdot\phi_{x\rightarrow y}$ : flux of minor isotope from reservoir x to y
+
+- $R_{x} ,R_{i} ,R_{x\rightarrow y}$ : isotope ratios of compound x, flux i, flux x to y
+
+- $\alpha_{x\rightarrow y}=\frac{k^{*}}{k}$ $\frac{R_{x\rightarrow y}}{R_{x}}=\rightarrow R_{x\rightarrow y}=\frac{k^{*}}{k}\cdot R_{x}=\alpha_{x\rightarrow y}\cdot R_{x}$ : kinetic fractionation factor for flux from x to y, by the way it is defined, this means that normal isotope effects are < 1 and inverse are > 1 (Hayes type definition, opposite to the definition in the section above).
+
+- $\alpha_{y/x}^{eq}=\frac{R_{y}^{eq}}{R_{x}^{eq}}$ : equilibrium fractionation factor between reservoirs y and x
+
+- $\alpha_{y/x}=\frac{R_{y}}{R_{x}}$ : observed/steady-state fractionation between reservoirs y and x
+
+# Equations
+
+Change in major isotope in reservoir x with sum of reaction fluxes in and out of the pool:
+
+$$
+\frac{dX}{dt}=\underset{i}{\sum}\phi_{i}=\underset{i}{\sum}\phi_{i\rightarrow x}-\underset{j}{\sum}\phi_{x\rightarrow j}
+$$
+
+Change in minor isotope in reservoir x:
+
+$$
+\frac{dX^{*}}{dt}=\underset{i}{\sum}\phi_{i}^{*}=\underset{i}{\sum}R_{i}\phi_{i}=\underset{i}{\sum}R_{i\rightarrow x}\phi_{i\rightarrow x}-\underset{j}{\sum}R_{x\rightarrow i}\phi_{x\rightarrow j}
+$$
+
+Change in isotope ratio in reservoir x:
+
+$$
+\begin{aligned}
+\frac{dR_{x}}{dt} &=\frac{\partial}{\partial t}\left(\frac{X_{x}^{*}}{X_{x}}\right)=\frac{1}{X_{x}}\left(\frac{dX_{x}^{*}}{dt}-R_{x}\frac{dX_{x}}{dt}\right)=\frac{1}{X_{x}}\left[\left(\underset{i}{\sum}R_{i}\phi_{i}\right)-\left(R_{x}\underset{i}{\sum}\phi_{i}\right)\right]=\underset{i}{\sum}\frac{\phi_{i}}{X_{x}}\left(R_{i}-R_{x}\right)\\
+&= \underset{i}{\sum}\frac{\phi_{i\rightarrow x}}{X_{x}}\left(R_{i\rightarrow x}-R_{x}\right)-\underset{j}{\sum}\frac{\phi_{x\rightarrow j}}{X_{x}}\left(R_{x\rightarrow j}-R_{x}\right) 
+\end{aligned}
+$$
+
+Steady-state implications:
+
+$$
+\frac{dX}{dt}=\underset{i}{\sum}\phi_{i}\stackrel{!}{=}0 \\
+\frac{dX^{*}}{dt}=\underset{i}{\sum}R_{i}\phi_{i}\stackrel{!}{=}0 
+$$
+
+# N-ase System
+
+![](20191030_eunahs_system.png)
+
+## $NH_3$ node
+
+major isotope mass balance around the $NH_3$ reservoir:
+
+$$
+\frac{d^{14}NH_{3}}{dt}=\phi_{N_{2}H_{2}\rightarrow NH_{3}}-\phi_{NH_{3}\rightarrow NH_{3cyt}}\stackrel{!}{=}0
+$$
+
+at steady state (=0), this implies:
+
+$$
+\rightarrow\phi_{N_{2}H_{2}\rightarrow NH_{3}}=\phi_{NH_{3}\rightarrow NH_{3cyt}}=\phi_{net}
+$$
+
+rare isotope mass balance around the $NH_3$ reservoir:
+
+$$
+\frac{d^{15}NH_{3}}{dt}=\alpha_{N_{2}H_{2}\rightarrow NH_{3}}\cdot R_{N_{2}H_{2}}\cdot\phi_{N_{2}H_{2}\rightarrow NH_{3}}-\alpha_{NH_{3}\rightarrow NH_{3cyt}}\cdot R_{NH_{3}}\cdot\phi_{NH_{3}\rightarrow NH_{3cyt}}\stackrel{!}{=}0
+$$
+
+at steady state (=0), this implies:
+
+$$
+\rightarrow R_{N_{2}H_{2}}=\frac{R_{NH_{3}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}
+$$
+
+## $N_2H_2$ node
+
+major isotope mass balance around the $N_2H_2$ reservoir:
+
+$$
+\frac{d^{14}N_{2}H_{2}}{dt}=\phi_{N_{2}\rightarrow N_{2}H_{2}}-\phi_{N_{2}H_{2}\rightarrow N_{2}}-\phi_{N_{2}H_{2}\rightarrow NH_{3}}\stackrel{!}{=}0
+$$
+
+with the parameter $f$ as the branching flux:
+
+$$
+f=\frac{\phi_{N_{2}H_{2}\rightarrow NH_{3}}}{\phi_{N_{2}H_{2}\rightarrow N_{2}}}
+$$
+
+which implies (at steady-state):
+
+$$
+\begin{aligned}
+\rightarrow\phi_{N_{2}\rightarrow N_{2}H_{2}}&=\frac{1+f}{f}\phi_{net}\\
+\rightarrow \phi_{N_{2}H_{2}\rightarrow N_{2}}&=\frac{1}{f}\phi_{net}
+\end{aligned}
+$$
+
+rare isotope mass balance around the $N_2H_2$ reservoir:
+
+$$
+\frac{d^{15}N_{2}H_{2}}{dt}=\alpha_{N_{2}\rightarrow N_{2}H_{2}}\cdot R_{N_{2}}\cdot\phi_{N_{2}\rightarrow N_{2}H_{2}}-\alpha_{N_{2}H_{2}\rightarrow N_{2}}\cdot R_{N_{2}H_{2}}\cdot\phi_{N_{2}H_{2}\rightarrow N_{2}}-\alpha_{N_{2}H_{2}\rightarrow NH_{3}}\cdot R_{N_{2}H_{2}}\cdot\phi_{N_{2}H_{2}\rightarrow NH_{3}}\stackrel{!}{=}0
+$$
+
+which implies (at steady-state):
+
+$$
+R_{N_{2}}=\frac{1}{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}\cdot\frac{1}{1+f}\cdot\left(\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}+f\right)\cdot R_{NH_{3}}
+$$
+
+## $N_2$ node
+
+major isotope mass balance around the $N_2$ reservoir:
+
+$$
+\frac{d^{14}N_{2}}{dt}=\phi_{N_{2cyt}\rightarrow N_{2}}-\phi_{N_{2}\rightarrow N_{2cyt}}+\phi_{N_{2}H_{2}\rightarrow N_{2}}-\phi_{N_{2}\rightarrow N_{2}H_{2}}\stackrel{!}{=}0
+$$
+
+with the parameter $r$ as the reversibility of the $N_2$ diffusion & binding to the active site
+
+
+
+$$
+r=\frac{\phi_{N_{2}\rightarrow N_{2cyt}}}{\phi_{N_{2cyt}\rightarrow N_{2}}}
+$$
+
+which implies (at steady-state):
+
+$$
+\begin{aligned}
+\rightarrow \phi_{N_{2cyt}\rightarrow N_{2}}&=\frac{1}{1-r}\phi_{net} \\
+\rightarrow \phi_{N_{2}\rightarrow N_{2cyt}}&=\frac{r}{1-r}\phi_{net}
+\end{aligned}
+$$
+
+rare isotope mass balance around the $N_2$ reservoir:
+
+$$
+\frac{d^{15}N_{2}}{dt}=\alpha_{N_{2cyt}\rightarrow N_{2}}\cdot R_{N_{2cyt}}\cdot\phi_{N_{2cyt}\rightarrow N_{2}}-\alpha_{N_{2}\rightarrow N_{2cyt}}\cdot R_{N_{2}}\cdot\phi_{N_{2}\rightarrow N_{2cyt}}+\alpha_{N_{2}H_{2}\rightarrow N_{2}}\cdot R_{N_{2}H_{2}}\cdot\phi_{N_{2}H_{2}\rightarrow N_{2}}-\alpha_{N_{2}\rightarrow N_{2}H_{2}}\cdot R_{N_{2}}\cdot\phi_{N_{2}\rightarrow N_{2}H_{2}}\stackrel{!}{=}0
+$$
+
+which implies (at steady-state)
+
+$$
+R_{N_{2cyt}}=\frac{1}{\alpha_{N_{2cyt}\rightarrow N_{2}}}\left[\left(\frac{\alpha_{N_{2}\rightarrow N_{2cyt}}}{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}\cdot\frac{r}{1+f}+\frac{1-r}{f}\right)\left(\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}+f\right)-\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}\cdot\frac{1-r}{f}\right]\cdot R_{NH_{3}}
+$$
+
+and with simplifying assumption that:
+
+$$
+\alpha_{N_{2}\rightarrow N_{2cyt}}=\alpha_{N_{2cyt}\rightarrow N_{2}}
+$$
+
+becomes:
+
+### Eq. 1: Full Equation
+
+$$
+\frac{1}{\alpha_{NH_3 / N_2cyt}}=
+\frac{R_{N_{2cyt}}}{R_{NH_{3}}}=\left(\frac{1}{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}\cdot\frac{r}{1+f}+\frac{1-r}{\alpha_{N_{2cyt}\rightarrow N_{2}}\cdot f}\right)\left(\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}+f\right)-\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}\cdot\frac{1-r}{f}
+$$
+
+This equation can be used to model all potential dynamics of the system but is not very intuitive for making predictions about endmember cases:
+
+### Eq. 2: Diffusion limited ($r = 0$)
+
+$$
+\alpha_{NH_3 / N_2cyt} = \alpha_{N_{2cyt}\rightarrow N_{2}}
+$$
+
+### Eq. 3: Equilibrium at first step ($r = 1$)
+
+$$
+\alpha_{NH_3 / N_2cyt} = 
+\alpha_{N_{2}\rightarrow N_{2}H_{2}}\cdot\frac{1+f}{\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}+f}
+$$
+
+which can be re-cast with the equilibrum fractionation between $N_2$ and $N_2H_2$:
+
+$$
+\alpha_{NH_3 / N_2cyt} = 
+\frac{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}{\alpha_{N_{2}H_{2}/N_{2}}^{eq}}
+$$
+
+to yield:
+
+$$
+\alpha_{NH_3 / N_2cyt} = 
+\alpha_{N_{2}\rightarrow N_{2}H_{2}}\cdot\frac{1+f}{\frac{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}\cdot\alpha_{N_{2}H_{2}/N_{2}}^{eq}}+f}
+$$
+
+### Eq. 4: Equilibrium at first step ($r = 1$) and full catalysis at second step ($f=\infty$)
+
+$$
+\alpha_{NH_3 / N_2cyt} = 
+\alpha_{N_{2}\rightarrow N_{2}H_{2}}
+$$
+
+
+### Eq. 5: Equilibrium at first step ($r = 1$) and equilibrum at second step ($f = 0$)
+
+$$
+\alpha_{NH_3 / N_2cyt} = 
+\alpha_{N_{2}H_{2}/N_{2}}^{eq}\cdot \alpha_{N_{2}H_{2}\rightarrow NH_{3}}
+$$
+
+
+
+# Calculation of $\alpha_{N_{2}H_{2}/N_{2}}^{eq}$
+
+## Data
+
+```{r}
+# wave numbers in cm-1
+wave_numbers <-
+  tribble(
+    # double substituted 14N (light) 15N (heavy) end-members
+    ~compound, ~vibration,              ~w_light, ~w_heavy,
+    # N2 numbers from Richet et al. 1977, Table 5
+    "N2",      "v1 (stretch)",          2358.027, 2278.313,
+    # N2H2 (trans) numbers from Craig et al. 1979, Table 1 & 2
+    "N2H2",    "v1 (sym. NH stretch)",  3128,     3128, # no change??
+    "N2H2",    "v2 (sym. NH bend)",     1583,     1583, # no change??
+    "N2H2",    "v3 (NN stretch)",       1529,     1529, # no change??
+    "N2H2",    "v4 (torsion)",          1286,     1286 - 2.6, # obs
+    "N2H2",    "v5 (asym. NH stretch)", 3120,     3120 - 7.0, # obs
+    "N2H2",    "v6 (asym. NH bend)",    1322,     1322 - 2.9,  # calc
+    # N2H2 (cis) modeled from Craig et al. 1979, Table 6
+    "N2H2cis", "v1 (sym. NH stretch)",  2966,     NA_real_, #?
+    "N2H2cis", "v2 (NN stretch)",       1558,     NA_real_, #?
+    "N2H2cis", "v3 (sym. NH bend)",     1390,     NA_real_, #?
+    "N2H2cis", "v4 (torsion)",          1259,     NA_real_, #?
+    "N2H2cis", "v5 (asym. NH stretch)", 2984,     NA_real_, #?
+    "N2H2cis", "v6 (asym. NH bend)",    1439,     NA_real_  #?
+  )
+
+# molecules
+molecules <- 
+  tribble(
+    ~compound, ~element, ~n_atoms,
+    "N2",      "N",      2,
+    "N2H2",    "N",      2
+  )
+
+# isotopes
+isotopes <- 
+  tribble(
+    ~element,  ~m_light, ~m_heavy, 
+    # https://www.lfd.uci.edu/~gohlke/molmass/
+    "N",       14.00307, 15.00011
+  )
+
+# cominbed information
+system <- 
+  wave_numbers %>% 
+  inner_join(molecules, by = "compound") %>% 
+  inner_join(isotopes, by = "element")
+
+system %>% knitr::kable()
+```
+
+## Temperature range
+
+Define which temperatures we want to look at 
+
+```{r}
+# define temperature range
+temperatures <- tibble(
+  temp_C = seq(0, 500, by = 5)
+)
+```
+
+## Partition function ratio, $\beta$ and $\alpha^{eq}$
+
+$$
+\frac{Q^*}{Q} = \left( \frac{m^*}{m} \right)^{3n/2} 
+\frac{\sigma}{\sigma^*} 
+\prod_i \frac{\nu^*_i}{\nu_i} 
+  \frac{e^{-U^*_i /2}}{e^{-U_i /2}} 
+  \frac{1 - e^{-U_i}}{1 - e^{-U_i^*}}
+$$
+
+$$
+\beta_X = \left[
+\frac{\sigma}{\sigma^*} \prod_i \frac{\nu_i^*}{\nu_i}
+\frac{e^{-U_i^*/2}}{e^{-U_i/2}} \frac{1-e^{-U_i}}{1-e^{-U_i^*}} \right]^{1/n}
+$$
+
+$$
+\alpha^{eq}_{Y/X} = \frac{\beta_Y}{\beta_X}
+$$
+
+## Components of $Q_R$
+
+```{r "partition_function", fig.width=8, fig.height=8}
+# calculate all the different components of the partition function ratios (QR)
+QRs_all <- 
+  system %>% 
+  crossing(temperatures) %>% 
+  mutate(
+    # the mass ratio term
+    QR_m = calc_m_ratio(m_light, m_heavy, n_atoms = n_atoms),
+    # the symmetry term (1 if we're considering fully substituted end members)
+    QR_symmetry = 1,
+    # vibrational frequency ratio term
+    QR_vib = calc_vib_freq_ratio(w_light, w_heavy),
+    # low temperature ratio component (~ZPE)
+    QR_low_T = calc_low_T_term_ratio(w_light, w_heavy, temp_C),
+    # high temperature ratio component (excited energy levels)
+    QR_high_T = calc_high_T_term_ratio(w_light, w_heavy, temp_C)
+  )
+
+# plot the components
+QRs_all %>% 
+  # gather all partition function ratios (QRs)
+  gather(qr, value, starts_with("QR")) %>% 
+  unique() %>% 
+  ggplot() + 
+  aes(temp_C, value, color = qr, linetype = vibration) +
+  geom_line() +
+  facet_grid(qr~compound, scales = "free_y") +
+  theme_bw()
+```
+
+## $\beta$ values
+
+```{r "beta_values", warning=FALSE}
+# calculate the total from the parts
+betas <- 
+  QRs_all %>% 
+  group_by(temp_C, compound) %>% 
+  # run the calculation (the QR_m and QR_symmetry terms only appear once in the 
+  # formula, the rest need the products across all wave numbers)
+  summarize(
+    QR_total = QR_m[1] * QR_symmetry[1] * prod(QR_vib) * prod(QR_low_T) * prod(QR_high_T),
+    beta = (QR_symmetry[1] * prod(QR_vib) * prod(QR_low_T) * prod(QR_high_T)) ^ (1/n_atoms[1])
+  )
+
+# plot the betas
+betas %>% 
+  ggplot() + 
+  aes(temp_C, beta, color = compound) +
+  scale_x_continuous(expand = c(0,0)) +
+  geom_line() +
+  theme_bw()
+```
+
+## $\alpha^{eq}$ values
+
+```{r "alpha_eq_values", warning=FALSE}
+# fractionation factors
+alphas <- 
+  betas %>% 
+  # need to calculate this for each temperature
+  group_by(temp_C) %>% 
+  summarize(
+    alpha_N2H2_vs_N2 = beta[compound == "N2H2"] / beta[compound == "N2"]
+  )
+
+# data
+alphas %>% filter(temp_C < 50) %>% knitr::kable(d=3)
+
+# plot
+alphas %>% 
+  ggplot() + 
+  aes(temp_C, alpha_N2H2_vs_N2) %>% 
+  geom_line() + 
+  scale_y_continuous(
+    # define axis label here rather than in labs (can do either place)
+    name = latex2exp::TeX("$\\alpha^{eq}_{\\,N_2H_2\\,/\\,N_2}$"), 
+    #define a unit conversion scale (\U2030 is the permil character)
+    labels = function(x) sprintf("%.2f\n%.0f\U2030", x, 1000 * (x - 1)), expand = c(0, 0)) +
+  theme_bw()
+```
+
+# Modeling
+
+## Assumptions & Variables
+
+- $r=\frac{\phi_{N_{2}\rightarrow N_{2cyt}}}{\phi_{N_{2cyt}\rightarrow N_{2}}} = \frac{k [N_2]}{k [N_2cyt]}$ from 0 (diffusion limited) to 1 (N2 equilibrated at active site)
+- $f=\frac{\phi_{N_{2}H_{2}\rightarrow NH_{3}}}{\phi_{N_{2}H_{2}\rightarrow N_{2}}}=\frac{k_{N_{2}H_{2}\rightarrow NH_{3}}}{k_{N_{2}H_{2}\rightarrow N_{2}}[H_2]}$ from 0.1 (little catalysis, almost full equilibration between the $E_4(4H)$ + $N_2$ and the $E_4(N_2H_2)$ state) to $\infty$ (100% efficient catalysis)
+- $\alpha_{N_{2cyt}\rightarrow N_{2}}$: kinetic isotope effect $N_2$ diffusion from the cytosol to the active site, likely to be a small normal isotope effect ($\alpha \approx 0.999$)
+- $\alpha_{N_{2}\rightarrow N_{2}H_{2}}$: kinetic isotope effect of the reductive binding of N_2, likely to be a normal isotope effect ($\alpha$ < 1), possibly strongly fractionating ($\alpha=0.9$?)
+- $\alpha_{N_2H_2/N_2} = 0.935$ (at 25C): equilibrium fractionation
+- $\alpha_{N_{2}H_{2}\rightarrow NH_{3}}$: kinetic isotope effect of the $N_2H_2$ reduction to  $NH_3$, likely to be a normal isotope effect ($\alpha$ < 1), possibly also strongly fractionating
+
+## Calculations
+
+$$
+\frac{1}{\alpha_{NH_3 / N_2cyt}}=\frac{R_{N_{2cyt}}}{R_{NH_{3}}}=\left(\frac{1}{\alpha_{N_{2}\rightarrow N_{2}H_{2}}}\cdot\frac{r}{1+f}+\frac{1-r}{\alpha_{N_{2cyt}\rightarrow N_{2}}\cdot f}\right)\left(\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}+f\right)-\frac{\alpha_{N_{2}H_{2}\rightarrow N_{2}}}{\alpha_{N_{2}H_{2}\rightarrow NH_{3}}}\cdot\frac{1-r}{f}
+$$
+
+
+
+```{r "model", fig.width=10, fig.height=8, warning=FALSE}
+model <- 
+  # model space
+  crossing(
+    r = seq(0, 1, by = 0.001),
+    f = c(0.1, 1, 10, 100),
+    alpha_N2cyt_N2 = 0.999,
+    alpha_N2_N2H2 = c(0.9, 0.95, 1.0),
+    alpha_eq_N2H2_N2 = 0.935,
+    alpha_N2H2_NH3 = c(0.9, 0.95, 1.0)
+  ) %>% 
+  # calculations
+  mutate(
+    alpha_N2H2_N2 = alpha_N2_N2H2 / alpha_eq_N2H2_N2,
+    `alpha_NH3/N2cyt` = 
+      case_when(
+        # diffusion limited
+        r == 0 ~ alpha_N2cyt_N2,
+        # other cases
+        TRUE ~  ((1/alpha_N2_N2H2 * r / (1 + f) + (1 - r) / ( alpha_N2cyt_N2 * f) ) * 
+      ( alpha_N2H2_N2 / alpha_N2H2_NH3 + f ) - 
+      alpha_N2H2_N2 / alpha_N2H2_NH3 * (1 - r) / f) ^ (-1)
+      )
+  )
+
+# plot
+y_range <- c(0.98, 1.003)
+model %>% 
+  filter(between(`alpha_NH3/N2cyt`, y_range[1]^2, y_range[2]^2)) %>% 
+  mutate(
+    # ensure grouping
+    linegroup = paste(alpha_N2cyt_N2, alpha_N2_N2H2, 
+                      alpha_eq_N2H2_N2, alpha_N2H2_NH3, f),
+    # latex labels
+    panel_1 = 
+      sprintf("$\\alpha_{N_2\\rightarrow{}N_2H_2} = %.3f$", alpha_N2_N2H2) %>% as_factor(),
+    panel_2 = 
+      sprintf("$\\alpha_{N_2H_2\\rightarrow{}NH_3} = %.3f$", alpha_N2H2_NH3) %>% as_factor() %>% 
+      fct_rev(),
+  ) %>% 
+  ggplot() + 
+  aes(r, `alpha_NH3/N2cyt`, group = linegroup, color = factor(f)) + 
+  geom_hline(yintercept = 1.0, size = 1) + 
+  geom_line() +
+   scale_y_continuous(
+    # define axis label here rather than in labs (can do either place)
+    name = latex2exp::TeX("$\\alpha_{\\,NH_3\\,/\\,N_2_{cyt}}$"), 
+    #define a unit conversion scale (\U2030 is the permil character)
+    labels = function(x) sprintf("%.3f\n%.0f\U2030", x, 1000 * (x - 1)), expand = c(0, 0)) +
+  theme_figure() + 
+  facet_grid(panel_2 ~ panel_1, labeller = latex_labeller) + 
+  coord_cartesian(y = y_range) +
+  labs(color = "f")
+```
+
