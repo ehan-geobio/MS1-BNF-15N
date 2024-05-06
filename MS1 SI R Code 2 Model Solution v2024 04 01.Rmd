@@ -1,0 +1,98 @@
+---
+title: "MS1 SI R Code 2 Model Solution v2024 04 01"
+author: "Eunah Han"
+date: "2024-04-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library('knitr')
+library('imager')
+```
+
+This code operates successfully only when epsilon has been measured in multiple culture or reaction conditions (e.g., batch, chemostat 0.6/day, chemostat 2/day, in vitro). This code calculates best solution of KIE_diff, KIE_cat, and f_used using an isotopic mass balance equation, Eq. 1 in the "15N Isotope Model of BNF epsilon" part of the Results section.
+
+```{R out.width = "300px"}
+knitr::include_graphics("/Users/eunah/Desktop/MS1 R Code 2 Fluxe Scheme.jpg")
+```
+
+$$
+\alpha_{fix} = -(KIE_{cat}-KIE_{diff}) \cdot f_{used}+KIE_{cat}
+$$
+    The input variables are:
+      var 1. KIE_diff: kinetic isotope effect of N2 diffusion from extracellular space to active site
+      var 2. KIE_cat: kinetic isotope effect of reduction of N2 into 2N2H
+      var 3. f_used: phi_net/phi_forward (See Figure)
+    The outoput variable is:
+      var 4. alpha_fix = (epsilon/1,000) + 1
+
+
+A best solution makes a difference between measured and calculated 15N fractionation less than 0.5 permil. Here, this error criterion is not 0 permil because there can be a potential analytical error in experimentally measuring epsilon. This code creates two tables. One shows best solutions making f_used the smallest, and the other shows best solutions making  f_used largest. A possible range of f_used is from 0 to 1. Please see the detailed explanation of this calculation in the SI Materials and Methods section.
+
+
+## Function of minimum possible f_used
+
+In this code, f is f_used.
+
+```{R pressure, echo=FALSE}
+
+solve_model<-function(ID,a_emp1,a_emp2,a_emp3,a_emp4){
+  #ID: Strain_Method
+  #a_emp1 to 4: empirically measured epsilon in different conditions
+  
+  mMin<-matrix(NA, nrow=100, ncol=7) #best fit solution for smallest f_used
+  mMax<-matrix(NA, nrow=100, ncol=7) #best fit solution for largest f_used
+  colnames(mMin)<-c('ID','KIE_diff','KIE_cat','f_used1','f_used2','f_used3','f_used4')
+  colnames(mMax)<-c('ID','KIE_diff','KIE_cat','f_used1','f_used2','f_used3','f_used4')
+
+  #default initial values (no meaning)
+  f_min1=1; f_min2=1; f_min3=1; f_min4=1; i_min=1
+  f_max1=1; f_max2=1; f_max3=1; f_max4=1; i_max=1
+
+  for(KIE_diff in seq(from=1.0000, to=1.0068, by=0.0001)){
+    for(KIE_cat in seq(from=1.017, to=1.027, by=0.0001)){
+      for(f1 in seq(from=0, to=1, by=0.01)){
+        a_est1 = -(KIE_cat-KIE_diff) * f1 + KIE_cat #a_est: model estimated epsilon
+        a_err1 = a_est1-a_emp1 #a_err: difference between a_est and a_emp
+        
+        if((-0.0005<a_err1)&&(a_err1<0.0005)&&(f1<=f_min1)){
+          for(f2 in seq(from=0, to=1, by=0.01)){
+            a_est2 = -(KIE_cat-KIE_diff) * f2 + KIE_cat
+            a_err2 = a_est2-a_emp2
+            
+            if((-0.0005<a_err2)&&(a_err2<0.0005)&&(f2<=f_min2)){
+              for(f3 in seq(from=0, to=1, by=0.01)){
+                a_est3 = -(KIE_cat-KIE_diff) * f3 + KIE_cat
+                a_err3 = a_est3-a_emp3
+                
+                if((-0.0005<a_err3)&&(a_err3<0.0005)&&(f3<=f_min3)){
+                  for(f4 in seq(from=0, to=1, by=0.01)){
+                    a_est4 = -(KIE_cat-KIE_diff) * f4 + KIE_cat
+                    a_err4 = a_est4-a_emp4
+                    
+                    if((-0.0005<a_err4)&&(a_err4<0.0005)&&(f4<=f_min4)){
+                      mMin[i_min,]<-c(ID,KIE_diff,KIE_cat,f1,f2,f3,f4)
+                      f_min1 = f1; f_min2 = f2; f_min3 = f3; f_min4 = f4
+                      i_min = i_min+1
+                    }}}}}}}}}}
+  
+  return(mMin)
+}
+```
+
+Example of WT
+
+```{R}
+A<-solve_model(1,1.0025,1.0025,1.0025,1.017)
+A<-na.omit(A)
+A
+```
+
+## Function of maximum possible f_used
+
+You can mathematically confirm if there is a solution for f_used1 to 4 = 1, without using code.
+
+
+
+
+End of Document
